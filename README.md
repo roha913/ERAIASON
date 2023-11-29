@@ -1,5 +1,5 @@
 # ERAIASON
-An artifical life and artificial intelligence project.
+An artifical life / artificial intelligence project, and god game.
 
 Evolve Robotic Animats in a Simulation of Nature
 
