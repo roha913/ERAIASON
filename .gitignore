@@ -55,6 +55,11 @@ sysinfo.txt
 *.apk
 *.unitypackage
 
+# Packages
+Packages/*
+!Packages/manifest.json
+!Packages/packages-lock.json
+
 #simulation
 *.GenomeBrain
 *.HyperNEATBrainGenome
