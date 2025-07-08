@@ -5,16 +5,16 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/MainMenu.unity
     guid: e42afebea7f0b384fa807ebe00bd4189
   - enabled: 1
     path: Assets/Scenes/Main.unity
     guid: 31a3cd1814af16d4983676f4553340cb
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Creators/BodyCreators/ArticulatedRobotCreator.unity
     guid: c3a6944b58e42c54f9f7d4703a7109bc
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Creators/BodyCreators/SoftVoxelRobotCreator.unity
     guid: b431c5ea02246d3488cf11d0cbfe96c1
   m_configObjects:
