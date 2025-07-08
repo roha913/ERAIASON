@@ -1,0 +1,75 @@
+// Each #kernel tells which function to compile; you can have many kernels
+
+int index_offset;
+float FLOAT_MAX_VALUE;
+
+int allocated_archive_size_power_of_two;
+int k_for_kNN;
+
+// buffers
+RWStructuredBuffer<float> results;
+RWStructuredBuffer<float> novelties;
+
+// variables
+
+
+float GetNoveltyKNN(int start_idx)
+{
+    float total_novelty = 0;
+    int a = 0;
+    for (int i = 0; i < k_for_kNN; i++)
+    {
+        total_novelty += results[start_idx + i];
+    }
+    total_novelty /= k_for_kNN;
+    return total_novelty;
+}
+
+/*
+    main function / kernel
+*/
+#define NUM_THREADS 32
+#pragma kernel CSMain
+[numthreads(NUM_THREADS,1,1)]
+void CSMain (uint3 thread_id: SV_DispatchThreadID)
+{  
+    // code for Bitonic sort from ChatGPT (4o) and Github copilot
+    
+    uint i = thread_id.x + index_offset; // Global thread index
+    uint N = allocated_archive_size_power_of_two; // Size of each subarray (N)
+    uint start = i * N; // Start index of the current subarray
+
+
+    // Outer loop for the bitonic sort
+    for (uint k = 2; k <= N; k *= 2)
+    {
+        // Inner loop for the bitonic merge
+        for (uint j = k / 2; j > 0; j /= 2)
+        {
+            for (uint idx = 0; idx < N; ++idx)
+            {
+                uint ixj = idx ^ j;
+                uint global_ixj = start + ixj; // Convert local index to global index
+                uint global_idx = start + idx; // Convert local index to global index
+
+                if (ixj < N)
+                {
+                    // Compare and swap
+                    bool dir = ((idx & k) != 0);
+                    if ((results[global_idx] > results[global_ixj]) == dir)
+                    {
+                        float temp = results[global_idx];
+                        results[global_idx] = results[global_ixj];
+                        results[global_ixj] = temp;
+                    }
+                }
+            }
+            GroupMemoryBarrierWithGroupSync();
+        }
+    }
+    
+    // done sorting, so now we can calculate the KNN
+    novelties[i] = GetNoveltyKNN(start);
+}
+    
+
