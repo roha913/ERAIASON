@@ -1,0 +1,167 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#include "BrainStructs.cginc"
+
+int neuron_activation_function;
+
+RWStructuredBuffer<Neuron> current_state_neurons;
+RWStructuredBuffer<Synapse> current_state_synapses;
+
+RWStructuredBuffer<Neuron> next_state_neurons;
+RWStructuredBuffer<Synapse> next_state_synapses;
+
+
+void Execute(int i)
+{
+    /*
+        * First do the Firing calculation 
+        */
+    Neuron to_neuron = current_state_neurons[i];
+
+    bool is_sensory_neuron = to_neuron.neuron_role == NEURON_ROLE_SENSOR;
+    if (is_sensory_neuron) return;
+    
+    to_neuron.real_num_of_synapses = 0; //for metadata
+
+     // sum inputs to the neuron
+        
+    int start_idx = to_neuron.synapse_start_idx;
+    int end_idx = (to_neuron.synapse_start_idx + to_neuron.synapse_count);
+    float sum = 0.0; 
+    sum += to_neuron.bias;
+    for (int j = start_idx; j < end_idx; j++)
+    {
+        Synapse connection = current_state_synapses[j];
+        //if (connection.enabled == 0) continue;
+        int from_idx = connection.from_neuron_idx;
+        Neuron from_neuron = current_state_neurons[from_idx];
+
+        float input = connection.weight * from_neuron.activation;
+        //if (from_neuron.excitatory == 0) input *= -1;
+        sum += input;
+            
+        to_neuron.real_num_of_synapses++;
+    }
+
+   
+
+    if (to_neuron.neuron_class == NEURON_CLASS_CTRNN)
+    {
+        float voltage_change = -to_neuron.voltage;
+        voltage_change += sum;
+        to_neuron.voltage += (voltage_change / to_neuron.tau_time_constant);
+        sum = to_neuron.voltage;
+        sum *= to_neuron.gain;
+    }
+
+ 
+        
+      
+    if (to_neuron.activation_function == NEURON_ACTIVATIONFUNCTION_LINEAR)
+    {
+        to_neuron.activation = to_neuron.Linear(sum);
+    }
+    else if (to_neuron.activation_function == NEURON_ACTIVATIONFUNCTION_SIGMOID)
+    {
+        to_neuron.activation = to_neuron.SigmoidSquashSum(sum);
+    }
+    else if (to_neuron.activation_function == NEURON_ACTIVATIONFUNCTION_TANH)
+    {
+        to_neuron.activation = to_neuron.TanhSquashSum(sum);
+    }
+    else if (to_neuron.activation_function == NEURON_ACTIVATIONFUNCTION_LEAKYRELU)
+    {
+        to_neuron.activation = to_neuron.LeakyReLUSum(sum);
+    }
+    else if (to_neuron.activation_function == NEURON_ACTIVATIONFUNCTION_RELU)
+    {
+        to_neuron.activation = to_neuron.ReLUSum(sum);
+    }
+    else if (to_neuron.activation_function == NEURON_ACTIVATIONFUNCTION_STEP)
+    {
+        to_neuron.activation = to_neuron.Step(sum);
+    }
+    else
+    {
+        //error
+    }
+    
+    if (!isfinite(to_neuron.activation))
+    {
+        to_neuron.activation = 0.0;
+    }
+    //to_neuron.activation = 1.0;
+    // set the data
+   
+    next_state_neurons[i] = to_neuron;
+
+    
+    
+    return;
+    
+    
+    /*
+        * Second do the Hebbian learning calculation 
+        */
+ /*
+    float delta_weight;
+    for (int j = start_idx; j < end_idx; j++)
+    {
+        Synapse connection = current_state_synapses[j];
+        if (connection.enabled)
+        {
+            int from_idx = connection.from_neuron_idx;
+            Neuron from_neuron = current_state_neurons[from_idx];
+            float presynaptic_firing;
+            float postsynaptic_firing;
+            if (from_neuron.type == NEURON_TYPE_SPIKING)
+            {
+                presynaptic_firing = from_neuron.firing == 1 ? 1 : 0;
+                postsynaptic_firing = current_state_neurons[i].firing == 1 ? 1 : 0;
+            }
+            else
+            {
+                presynaptic_firing = from_neuron.activation;
+                postsynaptic_firing = current_state_neurons[i].activation;
+            }
+
+            delta_weight = connection.learning_rate_r * (connection.coefficient_A * presynaptic_firing * postsynaptic_firing
+                + connection.coefficient_B * presynaptic_firing
+                + connection.coefficient_C * postsynaptic_firing
+                + connection.coefficient_D);
+            connection.weight += delta_weight;
+        }
+
+        if (!isfinite(connection.weight))
+        {
+            connection.weight = 0;
+        }
+
+        // constrain weight in [-1,1]
+/*         if(connection.weight > 1)
+        {
+            connection.weight = 1;
+        }else if(connection.weight < -1)
+        {
+            connection.weight = -1;
+        }
+
+        next_state_synapses[j] = connection; // set the data
+    } */
+
+}
+
+
+/*
+    main function / kernel
+*/
+int index_offset;
+#define NUM_THREADS 32
+[numthreads(NUM_THREADS,1,1)]
+void CSMain (uint3 thread_id: SV_DispatchThreadID)
+{
+    int i = thread_id.x + index_offset;
+    Neuron to_neuron = current_state_neurons[i];
+    next_state_neurons[i] = to_neuron;
+    Execute(i);
+}
