@@ -1,8 +1,0 @@
-[submodule "3DCellularWorld"]
-	path = 3DCellularWorld
-	url = https://github.com/ccrock4t/3DCellularWorld
-	branch=main
-[submodule "AnimatCreator"]
-	path = AnimatCreator
-	url = https://github.com/ccrock4t/AnimatCreator
-	branch=main
