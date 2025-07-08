@@ -25,8 +25,8 @@ public class AnimatArena : MonoBehaviour
     public AnimatTable noveltyTable = new(AnimatTable.SortingRule.sorted, AnimatTable.ScoreType.novelty);  // score, genomes
     public AnimatTable recentPopulationTable = new(AnimatTable.SortingRule.unsorted, AnimatTable.ScoreType.objective_fitness);  // score, genomes
     private DataAnalyzer data_analyzer;
-    public NoveltySearch novelty_search;
     private SimulationUserInterface user_interface;
+    public NoveltySearch novelty_search;
 
     public List<GameObject> food_blocks;
     public List<GameObject> obstacle_blocks;
@@ -530,11 +530,6 @@ public class AnimatArena : MonoBehaviour
             this.recentPopulationTable.TryAdd(animat_objective_fitness_score, animat);
 
 
-
-            AddXP(animat_objective_fitness_score, animat_death_position);
-
-
-
             float high_score_contender = animat_objective_fitness_score;
 
             if (high_score_contender > this.high_score && !LOAD_MODE)
@@ -612,48 +607,7 @@ public class AnimatArena : MonoBehaviour
         this.user_interface.OnAfterAnimatDied(i);
     }
 
-    void AddXP(float points, Vector3 world_position_for_ui)
-    {
-        GameObject xp = Instantiate(xp_prefab);
-        xp.transform.parent = worldUIcanvas.transform;
-        xp.transform.position = world_position_for_ui;
-        xp.transform.GetComponent<TextMeshProUGUI>().text = $"+{points:F3} XP";
-        xp.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = $"+{points:F3} XP";
-        StartCount(points);
-    }
 
-    private float startValue = 0;
-    private float targetValue = 0;
-    private float elapsed = 0f;
-    public float duration = 1.0f;      // Time it takes to count up
-    private bool isCounting = false;
-    [SerializeField] private GameObject xp_prefab;
-
-    public void StartCount(float score_to_add)
-    {
-        startValue = user_points;
-        user_points += score_to_add;
-        targetValue = user_points;
-        elapsed = 0f;
-        isCounting = true;
-    }
-
-    void Update()
-    {
-        if (isCounting)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / duration);
-            float currentValue = Mathf.Lerp(startValue, targetValue, t);
-
-            user_points_textUI.text = $"{currentValue:F3}";
-
-            if (t >= 1f)
-                isCounting = false;
-        }
-
-
-    }
     void LoadGenomeAndSpawn()
     {
         if (GlobalConfig.BRAIN_GENOME_METHOD == BrainGenomeMethod.CPPN)
