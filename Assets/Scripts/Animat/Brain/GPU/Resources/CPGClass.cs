@@ -7,6 +7,9 @@ public class CPG{
   public float[] r_s;
   public int n;
   public CPG(Neuron[] neuron_set, float[] time_constants, float[] w_s, float[] p_s, float[] r_s){
+    if(neuron_set.length%4 != 0){
+      throw new Exception("Ahhhhhhhhhhhhhhhhhhhh!!!!!!!!!!!!!!!!!!!!");
+    }
     for(int i = 0; i < neuron_set.length; i++){
       if(neuron_set[i].neuron_role != 2){
         throw new Exception("Ahhhhhhhhhhhhhhhhhhhh!!!!!!!!!!!!!!!!!!");//TODO: Come up with a better exception message
@@ -27,13 +30,38 @@ public class CPG{
       neuron_set[i].activation = r_s[i]*Math.Sin(w_s[i]*(Time.Time - p_s[i])) + (1 - r_s[i])*Sigmoid(neuron_set[i].activation);
     }
   }
-  public virtual float fitnessFunction() = 0;
-  public float simulate(int num_iters){
-    float sum = 0f;
-    for(int iter = 0; iter < num_iters; iter++){
-      updateActivations();
-      sum += fitnessFunction();
+  public float[] fitnessFunction(){
+    int num_per_limb = neuron_set.length/4;
+    float[] fitnessPerLimb = new float[4];
+    fitnessPerLimb[0] = 0; fitnessPerLimb[1] = 0; fitnessPerLimb[2] = 0; fitnessPerLimb[3] = 0;
+    float min_act = 1000000000;
+    for(int i = 0; i < num_per_limb; i++){
+      if(neuron_set[i].activation < min_act){
+        min_act = neuron_set[i].activation;
+      }
     }
-    return sum;
+    fitnessPerLimb[0] = min_act;
+    min_act = 1000000000;
+    for(int i = num_per_limb; i < 2*num_per_limb; i++){
+      if(neuron_set[i].activation < min_act){
+        min_act = neuron_set[i].activation;
+      }
+    }
+    fitnessPerLimb[1] = min_act;
+    min_act = 1000000000;
+    for(int i = 2*num_per_limb; i < 3*num_per_limb; i++){
+      if(neuron_set[i].activation < min_act){
+        min_act = neuron_set[i].activation;
+      }
+    }
+    fitnessPerLimb[2] = min_act;
+    min_act = 1000000000;
+    for(int i = 3*num_per_limb; i < neuron_set.length; i++){
+      if(neuron_set[i].activation < min_act){
+        min_act = neuron_set[i].activation;
+      }
+    }
+    fitnessPerLimb[3] = min_act;
+    return fitnessPerLimb;
   }
 }
