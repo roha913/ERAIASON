@@ -105,8 +105,11 @@ public struct ParallelNeuralUpdateCPU : IJobParallelFor
 
         if (to_neuron.neuron_class == Neuron.NeuronClass.CTRNN) sum *= to_neuron.gain;
 
-        to_neuron_new_activation = to_neuron.RunActivationFunction(sum);
-
+        if(to_neuron is CPGNeuron){
+            to_neuron_new_activation = to_neuron.r * to_neuron.RunActivationFunction(sum) + (1 - to_neuron.r)*Math.Sin(to_neuron.w*(Time.time - to_neuron.p));
+        }else{
+            to_neuron_new_activation = to_neuron.RunActivationFunction(sum);
+        }
 
 
        // if (incoming_activated_neuron_count < 2) new_activation = 0; 
