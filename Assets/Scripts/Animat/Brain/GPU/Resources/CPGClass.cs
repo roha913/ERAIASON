@@ -1,3 +1,4 @@
+/*
 using UnityEngine;
 public class CPG{
   public Neuron[] neuron_set;
@@ -37,3 +38,4 @@ public class CPG{
     return sum;
   }
 }
+*/

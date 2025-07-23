@@ -52,7 +52,7 @@ public class AnimatArena : MonoBehaviour
     // constants
 
     [System.NonSerialized]
-    public int MINIMUM_POPULATION_QUANTITY = 10;
+    public int MINIMUM_POPULATION_QUANTITY = 50;
     public const int MAXIMUM_POPULATION_QUANTITY = 100;
 
     const int FOOD_QUANTITY = 150;
@@ -452,8 +452,17 @@ public class AnimatArena : MonoBehaviour
 
         //return times_reproduced
 
-
-        return distance_score  + ((food_eaten / AnimatBody.ENERGY_IN_A_FOOD) * (1 + times_reproduced));
+        float to_return =  distance_score  + ((food_eaten / AnimatBody.ENERGY_IN_A_FOOD) * (1 + times_reproduced));
+        Vector2 currOrientation = (Vector2) (animat.body.GetRotation() * transform.right);
+        to_return *= Vector2.Dot(animat.GetVectorFromBirthplace(), currOrientation);
+        //to_return *= animat.GetDistanceTowardsClosestFood();
+        to_return *= Vector2.Dot(animat.GetVectorTowardsClosestFood(), currOrientation);
+        //TODO: EXPERIMENTAL
+        float rot_x = Mathf.Min(0.866f, Mathf.Cos(animat.body.GetRotation().eulerAngles.x));
+        float rot_y = Mathf.Min(0.866f, Mathf.Cos(animat.body.GetRotation().eulerAngles.y));
+        to_return *= Mathf.Sqrt(rot_x * rot_x + rot_y * rot_y);
+        return to_return;
+        //return distance_score  + ((food_eaten / AnimatBody.ENERGY_IN_A_FOOD) * (1 + times_reproduced));
 
 
 
