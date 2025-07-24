@@ -457,6 +457,7 @@ public class AnimatArena : MonoBehaviour
         to_return *= Vector2.Dot(animat.GetVectorFromBirthplace(), currOrientation);
         //to_return *= animat.GetDistanceTowardsClosestFood();
         to_return *= Vector2.Dot(animat.GetVectorTowardsClosestFood(), currOrientation);
+        //to_return *= Vector2.Dot(animat.GetVectorFromBirthplace(), animat.GetVectorTowardsClosestFood());
         //TODO: EXPERIMENTAL
         float rot_x = Mathf.Min(0.866f, Mathf.Cos(animat.body.GetRotation().eulerAngles.x));
         float rot_y = Mathf.Min(0.866f, Mathf.Cos(animat.body.GetRotation().eulerAngles.y));
